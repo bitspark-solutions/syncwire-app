@@ -1,0 +1,49 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.syncwire.app'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.syncwire.app"
+        minSdk 26
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+
+        // Default SignalR hub URL – override in local.properties or via build flavor
+        buildConfigField "String", "SIGNALR_HUB_URL", '"http://10.0.2.2:8080/hubs/notifications"'
+    }
+
+    buildFeatures {
+        buildConfig true
+        viewBinding true
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    // SignalR Java client
+    implementation 'com.microsoft.signalr:signalr:8.0.7'
+
+    // Android UI
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.11.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+
+    // Lifecycle
+    implementation 'androidx.lifecycle:lifecycle-service:2.7.0'
+}
