@@ -13,15 +13,25 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddSignalR();
 builder.Services.AddSingleton<NotificationService>();
 
+var allowedOrigins = builder.Configuration
+    .GetSection("Cors:AllowedOrigins")
+    .Get<string[]>() ?? [];
+
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    options.AddPolicy("SignalRCors", policy =>
     {
-        policy
-            .SetIsOriginAllowed(_ => true)
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials();
+        if (allowedOrigins.Length == 0 || allowedOrigins.Contains("*"))
+        {
+            // Development convenience – allow any origin.
+            // Set Cors:AllowedOrigins in appsettings to restrict in production.
+            policy.SetIsOriginAllowed(_ => true);
+        }
+        else
+        {
+            policy.WithOrigins(allowedOrigins);
+        }
+        policy.AllowAnyHeader().AllowAnyMethod().AllowCredentials();
     });
 });
 
@@ -30,7 +40,7 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.UseCors("AllowAll");
+app.UseCors("SignalRCors");
 app.UseRouting();
 app.UseAuthorization();
 

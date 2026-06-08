@@ -60,6 +60,7 @@ docker_build(
     'syncwire-frontend',
     context='./frontend',
     dockerfile='./frontend/Dockerfile',
+    # NEXT_PUBLIC_* vars are baked in at build time; set the browser-reachable URL.
     build_args={'NEXT_PUBLIC_API_URL': 'http://localhost:8080'},
     live_update=[
         sync('./frontend/src', '/app/src'),
@@ -99,8 +100,8 @@ spec:
           ports:
             - containerPort: 3000
           env:
-            - name: NEXT_PUBLIC_API_URL
-              value: "http://syncwire-backend:8080"
+            - name: PORT
+              value: "3000"
 """))
 
 k8s_resource('syncwire-frontend', port_forwards='3000:3000')

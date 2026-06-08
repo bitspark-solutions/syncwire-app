@@ -21,12 +21,14 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
+        # NEXT_PUBLIC_* variables are baked in at build time by Next.js (standalone
+        # output).  Set this to the address a browser can reach the backend at.
+        # For local development that is http://localhost:8080; override for
+        # production with the public backend URL.
         NEXT_PUBLIC_API_URL: "http://localhost:8080"
     container_name: syncwire-frontend
     ports:
       - "3000:3000"
-    environment:
-      - NEXT_PUBLIC_API_URL=http://backend:8080
     depends_on:
       backend:
         condition: service_healthy
