@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">SyncWire</string>
+    <string name="label_device_id">Device / Channel ID</string>
+    <string name="hint_device_id">e.g. my-device-001</string>
+    <string name="label_status">Status</string>
+    <string name="status_disconnected">Disconnected</string>
+    <string name="status_connected">Connected – listening…</string>
+    <string name="btn_start">Start Listening</string>
+    <string name="btn_stop">Stop</string>
+</resources>
