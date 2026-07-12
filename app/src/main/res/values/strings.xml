@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">syncwire</string>
+    <string name="app_name">SyncWire</string>
+    <string name="listener_service_label">SyncWire notification listener</string>
 </resources>
