@@ -1,24 +1,13 @@
 package com.example.syncwire.sync
 
 import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
-import android.app.Service
-import android.content.Context
 import android.content.Intent
-import android.content.pm.ServiceInfo
-import android.os.Build
 import android.os.IBinder
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
-import androidx.core.app.NotificationCompat
-import com.example.syncwire.MainActivity
-import com.example.syncwire.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
@@ -28,7 +17,10 @@ import java.util.UUID
  * Receives system notifications and forwards each to the SyncWire server.
  *
  * Lifecycle: bound by the system once the user grants Notification Access in
- * Settings > Apps > Special access. No UI interaction needed after that.
+ * Settings > Apps > Special access > Notification access. The system keeps
+ * this service alive as long as access is granted, so no foreground-service
+ * notification is required for M1. (M3 will add a dataSync FGS for the
+ * offline outbox + reliability work.)
  *
  * Each notification is POSTed as JSON to {serverUrl}/notifications. On
  * failure we log and drop (M1); M3 adds a Room outbox + retry.
@@ -46,7 +38,6 @@ class SyncwireListenerService : NotificationListenerService() {
             baseUrlProvider = { settings.getServerUrl() },
             deviceIdProvider = { settings.getOrCreateDeviceId() },
         )
-        ensureForeground()
     }
 
     override fun onListenerConnected() {
@@ -60,7 +51,7 @@ class SyncwireListenerService : NotificationListenerService() {
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
-        // Skip our own foreground-service notification.
+        // Skip our own notifications.
         if (sbn.packageName == packageName) return
         val n = sbn.notification
         val extras = n.extras
@@ -94,36 +85,7 @@ class SyncwireListenerService : NotificationListenerService() {
 
     override fun onBind(intent: Intent?): IBinder? = super.onBind(intent)
 
-    private fun ensureForeground() {
-        // Android 14+: any FGS must specify its type. We use dataSync.
-        val pi = PendingIntent.getActivity(
-            this, 0,
-            Intent(this, MainActivity::class.java),
-            PendingIntent.FLAG_IMMUTABLE,
-        )
-        val notif: Notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle(getString(R.string.app_name))
-            .setContentText("Listening for notifications")
-            .setSmallIcon(android.R.drawable.stat_notify_sync_noanim)
-            .setContentIntent(pi)
-            .setOngoing(true)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
-            .build()
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            startForeground(
-                NOTIF_ID,
-                notif,
-                ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC,
-            )
-        } else {
-            startForeground(NOTIF_ID, notif)
-        }
-    }
-
     companion object {
         private const val TAG = "SyncwireListener"
-        private const val NOTIF_ID = 1
-        private const val CHANNEL_ID = "syncwire_listener"
     }
 }
