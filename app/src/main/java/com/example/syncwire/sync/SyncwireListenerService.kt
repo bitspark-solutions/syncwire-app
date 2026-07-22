@@ -51,8 +51,9 @@ class SyncwireListenerService : NotificationListenerService() {
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
-        // Skip our own notifications.
-        if (sbn.packageName == packageName) return
+        // We don't skip our own package — the Send-Test button posts a real
+        // system notification to exercise the full listener→server path.
+        // NotificationManager.notify() doesn't recurse, so this is safe.
         val n = sbn.notification
         val extras = n.extras
         val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString().orEmpty()
